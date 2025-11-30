@@ -191,6 +191,16 @@ When modifying code or tracking:
 - Incremental expansion (start simple, add edge cases)
 - Prefer unit tests + doctests over regression snapshots
 
+### Pull Request Quality Checklist
+
+When fixing an issue, go beyond the minimal fix:
+
+- Analyze codebase for related variables/patterns with same root cause
+- Update related code documentation (docstrings, inline comments)
+- Refactor related tests to follow Single Responsibility Principle
+- Check main documentation (README, help text) for consistency
+- Update CHANGELOG with all fixes discovered during analysis
+
 ### Package Layout
 
 Standard files:
