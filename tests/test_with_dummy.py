@@ -538,6 +538,94 @@ def test_private_module_filtering():
     assert 'test_foo' not in text
 
 
+def test_ignore_preservation_and_filtering():
+    """Test that __ignore__ is preserved and filters attributes correctly.
+
+    This test addresses issue #45 where __ignore__ was being removed
+    depending on its position in the file.
+    """
+    import mkinit
+    cache_dpath = ub.Path.appdir("mkinit/tests").ensuredir()
+    root = ub.ensuredir(join(cache_dpath, "test_ignore_pkg"))
+    ub.delete(root)
+    ub.ensuredir(root)
+
+    # Create a module with multiple attributes
+    ub.Path(join(root, "mymodule.py")).write_text(
+        "def public_func(): pass\n"
+        "def ignored_func(): pass\n"
+        "PUBLIC_VAR = 1\n"
+        "IGNORED_VAR = 2\n"
+    )
+
+    # Test Case 1: __ignore__ appears alone at the top
+    init_content_1 = (
+        "# Some text here.\n"
+        "__ignore__ = ['ignored_func', 'IGNORED_VAR']\n"
+    )
+    ub.Path(join(root, "__init__.py")).write_text(init_content_1)
+    _, text_1 = mkinit.formatting._insert_autogen_text(root, mkinit.static_init(root))
+
+    # Verify __ignore__ is preserved
+    assert '__ignore__' in text_1, "Case 1: __ignore__ should be preserved when alone"
+    # Verify filtering works - check in the import statement
+    lines_1 = text_1.split('\n')
+    import_line_1 = [l for l in lines_1 if 'from test_ignore_pkg.mymodule import' in l]
+    if import_line_1:
+        assert 'ignored_func' not in import_line_1[0], "Case 1: ignored_func should be filtered"
+        assert 'IGNORED_VAR' not in import_line_1[0], "Case 1: IGNORED_VAR should be filtered"
+        assert 'public_func' in import_line_1[0], "Case 1: public_func should be included"
+        assert 'PUBLIC_VAR' in import_line_1[0], "Case 1: PUBLIC_VAR should be included"
+
+    # Test Case 2: __ignore__ appears after __protected__ (the problematic case from issue #45)
+    init_content_2 = (
+        "# Some text here.\n"
+        "__protected__ = []\n"
+        "__ignore__ = ['ignored_func', 'IGNORED_VAR']\n"
+    )
+    ub.Path(join(root, "__init__.py")).write_text(init_content_2)
+    _, text_2 = mkinit.formatting._insert_autogen_text(root, mkinit.static_init(root))
+
+    # Verify __ignore__ is preserved (this was failing before the fix)
+    assert '__ignore__' in text_2, "Case 2: __ignore__ should be preserved when after __protected__"
+    lines_2 = text_2.split('\n')
+    import_line_2 = [l for l in lines_2 if 'from test_ignore_pkg.mymodule import' in l]
+    if import_line_2:
+        assert 'ignored_func' not in import_line_2[0], "Case 2: ignored_func should be filtered"
+        assert 'IGNORED_VAR' not in import_line_2[0], "Case 2: IGNORED_VAR should be filtered"
+
+    # Test Case 3: __ignore__ appears before __protected__
+    init_content_3 = (
+        "# Some text here.\n"
+        "__ignore__ = ['ignored_func', 'IGNORED_VAR']\n"
+        "__protected__ = []\n"
+    )
+    ub.Path(join(root, "__init__.py")).write_text(init_content_3)
+    _, text_3 = mkinit.formatting._insert_autogen_text(root, mkinit.static_init(root))
+
+    # Verify __ignore__ is preserved
+    assert '__ignore__' in text_3, "Case 3: __ignore__ should be preserved when before __protected__"
+    lines_3 = text_3.split('\n')
+    import_line_3 = [l for l in lines_3 if 'from test_ignore_pkg.mymodule import' in l]
+    if import_line_3:
+        assert 'ignored_func' not in import_line_3[0], "Case 3: ignored_func should be filtered"
+
+    # Test Case 4: __ignore__ with __private__
+    init_content_4 = (
+        "__ignore__ = ['ignored_func']\n"
+        "__private__ = []\n"
+    )
+    ub.Path(join(root, "__init__.py")).write_text(init_content_4)
+    _, text_4 = mkinit.formatting._insert_autogen_text(root, mkinit.static_init(root))
+
+    # Verify __ignore__ is preserved
+    assert '__ignore__' in text_4, "Case 4: __ignore__ should be preserved with __private__"
+    lines_4 = text_4.split('\n')
+    import_line_4 = [l for l in lines_4 if 'from test_ignore_pkg.mymodule import' in l]
+    if import_line_4:
+        assert 'ignored_func' not in import_line_4[0], "Case 4: ignored_func should be filtered"
+
+
 if __name__ == "__main__":
     """
     CommandLine:

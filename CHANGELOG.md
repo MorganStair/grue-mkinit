@@ -5,6 +5,12 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Fixed
+* Fixed issue #45: `__ignore__` variable is now properly preserved when regenerating `__init__.py` files, regardless of its position relative to other special variables like `__protected__` or `__private__`
+
+
 ## Version: 1.1.0 Released 2024-01-17
 
 ### Added

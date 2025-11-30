@@ -171,6 +171,7 @@ def _find_insert_points(lines):
         "__external__",
         "__private__",
         "__protected__",
+        "__ignore__",
         "#",
         '"""',
         "'''",
