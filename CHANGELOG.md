@@ -7,6 +7,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Documentation
+* Documented glob pattern support for `__private__`, `__protected__`, and `__ignore__` variables (addresses issue #1)
+* Updated CLI help text to clarify glob pattern usage with examples
+
 ### Fixed
 * Fixed issue #45: `__ignore__` variable is now properly preserved when regenerating `__init__.py` files, regardless of its position relative to other special variables like `__protected__` or `__private__`
 * Fixed related issue: `__explicit__` and `__extra_all__` variables are now properly preserved when regenerating `__init__.py` files (same root cause as issue #45)
