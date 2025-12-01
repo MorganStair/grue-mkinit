@@ -91,3 +91,5 @@ ENV/
 .pytest_cache
 
 docs/source/mkinit.*.rst
+
+.claude/*
